@@ -1,7 +1,8 @@
 import { camera, renderer, scene } from './utils/renderer';
-import windowResizer from './utils/windowResizer';
-import { config } from './config/config';
-import './styles/style.css';
+import windowResizer from '@/utils/windowResizer';
+import { config } from '@/config/config';
+import { controls } from '@/utils/controls/controls';
+import '@/styles/style.css';
 
 async function init() {
   scene.add(camera);
@@ -26,6 +27,7 @@ async function init() {
     lastTime = now - (delta % frameDuration);
 
     const deltaSec = delta / 1000;
+    controls.update();
 
     renderer.render(scene, camera);
   };

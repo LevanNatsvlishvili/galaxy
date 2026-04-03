@@ -1,5 +1,4 @@
 import { scene } from '../utils/renderer';
-import ground from './environment/ground';
 import { ambientLight, directionalLight } from './lights/lights';
 import { setupEnvironment } from './environment/environment';
 
@@ -12,7 +11,6 @@ export async function setupScene() {
 
   await loadStarterModels();
 
-  scene.add(ground);
   scene.add(ambientLight);
   scene.add(directionalLight);
 }

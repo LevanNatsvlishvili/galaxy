@@ -3,7 +3,7 @@ import * as THREE from 'three';
 export const config = {
   camera: {
     fov: 10.5,
-    position: { x: 10, y: 9, z: 10 },
+    position: { x: 0, y: 0, z: 2 },
   },
 
   controls: {
@@ -100,7 +100,7 @@ export const config = {
   },
 
   environment: {
-    background: 0x87ceeb,
+    // background: 0x87ceeb,
   },
 
   fps: {

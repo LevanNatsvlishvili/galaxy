@@ -178,7 +178,7 @@ function showIntroText() {
     });
 
     gsap.to(models.galaxy.rotation, {
-      y: Math.PI,
+      y: Math.PI - Math.PI / 4,
       duration: 2.5,
       delay: 0.5,
       ease: 'power2.inOut',

@@ -1,4 +1,5 @@
 import gui from '@/utils/gui';
+import gsap from 'gsap';
 import gltfLoader from '@/utils/loader/gltfLoader';
 import loadVideo from '@/utils/loader/videoLoader';
 import * as THREE from 'three';
@@ -9,25 +10,13 @@ export const bgCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
 
 let phoneModel = null;
 let screenMesh = null;
-let animationStarted = false;
 
-const PHONE_BEHIND_Z = 3;
-const PHONE_DELAY = 2;
-const ENTRANCE_DURATION = 1.5;
-const PHONE_START_Y = -0.3;
-
-function easeOutBack(t) {
-  const c1 = 1.70158;
-  const c3 = c1 + 1;
-  return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
-}
-
-function easeOutCubic(t) {
-  return 1 - Math.pow(1 - t, 3);
-}
+const PHONE_BEHIND_Z = 1.91;
+const PHONE_DELAY = 1.5;
+const ENTRANCE_DURATION = 2.5;
 
 function findScreenMesh(model) {
-  const keywords = ['screen', 'display', 'lcd', 'oled', 'panel'];
+  const keywords = ['display'];
   let found = null;
 
   model.traverse((child) => {
@@ -85,26 +74,23 @@ export async function galaxyModel() {
   backdrop.scale.setScalar(10);
   backdrop.position.z = -0.005;
   model.add(backdrop);
-  // Reduce strength of z position of phone model
 
   gui.add(phoneModel.position, 'z').min(0).max(PHONE_BEHIND_Z).step(0.001).name('Phone Position Z');
+
+  // GSAP entrance animation after delay
+  gsap.to(model.position, {
+    z: 0,
+    duration: ENTRANCE_DURATION,
+    delay: PHONE_DELAY,
+    ease: 'power1.out',
+    onUpdate: () => {
+      if (model.position.z < 1.9 && bgScene.visible) {
+        bgScene.visible = false;
+      }
+    },
+  });
 
   return model;
 }
 
-export function updateGalaxyAnimation(elapsed) {
-  if (!phoneModel || elapsed < PHONE_DELAY) return;
-
-  const t = elapsed - PHONE_DELAY;
-
-  if (t < ENTRANCE_DURATION) {
-    const p = easeOutCubic(t / ENTRANCE_DURATION);
-    phoneModel.position.z = THREE.MathUtils.lerp(PHONE_BEHIND_Z, 0, p);
-    // phoneModel.position.y = PHONE_START_Y * (1 - p);
-    // phoneModel.scale.setScalar(Math.max(0.001, easeOutBack(t / ENTRANCE_DURATION)));
-  } else {
-    phoneModel.position.z = 0;
-    // phoneModel.position.y = 0;
-    // phoneModel.scale.setScalar(1);
-  }
-}
+export function updateGalaxyAnimation() {}

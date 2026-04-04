@@ -3,12 +3,7 @@ import windowResizer from '@/utils/windowResizer';
 import { config } from '@/config/config';
 import { controls } from '@/utils/controls/controls';
 import { ambientLight, directionalLight } from '@/scene/lights/lights';
-import {
-  galaxyModel,
-  bgScene,
-  bgCamera,
-  updateGalaxyAnimation,
-} from '@/scene/models/galaxyModel';
+import { galaxyModel, bgScene, bgCamera, updateGalaxyAnimation } from '@/scene/models/galaxyModel';
 import { setupScene } from './scene';
 import '@/styles/style.css';
 
@@ -50,7 +45,7 @@ async function init() {
     renderer.autoClear = false;
     renderer.clearDepth();
     renderer.render(scene, camera);
-    renderer.autoClear = true;
+    // renderer.autoClear = true;
   };
   window.requestAnimationFrame(tick);
 }

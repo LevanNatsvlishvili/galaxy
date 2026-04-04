@@ -9,6 +9,7 @@ import gui from '@/utils/gui';
 const START_Z_OFFSET = 0.005;
 const START_X_OFFSET = 0.008;
 const START_Y_OFFSET = 0.0225;
+const spriteOffset = { x: 0.024, y: 0.002 };
 const DIAGONAL_OFFSET = { x: 0.02, y: 0.04, z: 0 };
 const HORIZONTAL_LENGTH = 0.04;
 const LINE_COLOR = '#C0C8D4';
@@ -109,22 +110,43 @@ function createAnnotation(targetMeshName, labelText) {
   const glowLine = new Line2(glowGeo, glowMat);
   glowLine.computeLineDistances();
 
-  // Glow dots at start and bend
-  const diagonalDot = createGlowDot(DIAGONAL_OFFSET);
-
   const startDot = createGlowDot(targetPos);
-  const midDot = createGlowDot(midPos);
 
-  // Text label
+  // Text label with border
   const canvas = document.createElement('canvas');
   canvas.width = 512;
-  canvas.height = 64;
+  canvas.height = 128;
   const ctx = canvas.getContext('2d');
+
+  const padding = 20;
+  const fontSize = 42;
+  ctx.font = `300 ${fontSize}px Helvetica Neue, Arial, sans-serif`;
+  ctx.letterSpacing = '3px';
+  const textWidth = ctx.measureText(labelText).width;
+
+  const boxX = padding / 2;
+  const boxY = padding / 2;
+  const boxW = textWidth + padding * 2;
+  const boxH = fontSize + padding;
+
+  // Glow border
+  ctx.shadowColor = 'rgba(192, 200, 212, 0.4)';
+  ctx.shadowBlur = 12;
+  ctx.strokeStyle = 'rgba(192, 200, 212, 0.6)';
+  ctx.lineWidth = 5;
+  ctx.roundRect(boxX, boxY, boxW, boxH, 4);
+  ctx.stroke();
+
+  // Reset shadow for text
+  ctx.shadowColor = 'transparent';
+  ctx.shadowBlur = 0;
+
+  // Text
   ctx.fillStyle = '#D2DCE8';
-  ctx.font = '300 32px Helvetica Neue, Arial, sans-serif';
+  ctx.font = `300 ${fontSize}px Helvetica Neue, Arial, sans-serif`;
   ctx.letterSpacing = '3px';
   ctx.textAlign = 'left';
-  ctx.fillText(labelText, 0, 40);
+  ctx.fillText(labelText, boxX + padding, boxY + fontSize);
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
@@ -134,24 +156,23 @@ function createAnnotation(targetMeshName, labelText) {
     transparent: true,
   });
   const sprite = new THREE.Sprite(spriteMat);
-  sprite.scale.set(0.04, 0.005, 1);
+  sprite.scale.set(0.05, 0.0125, 1);
   sprite.position.copy(endPos);
-  sprite.position.x += 0.02;
+  sprite.position.x -= spriteOffset.x;
+  sprite.position.y -= spriteOffset.y;
 
   const group = new THREE.Group();
   group.add(glowLine);
   group.add(line);
   group.add(startDot);
-  // group.add(midDot);
-  // group.add(diagonalDot);
   group.add(sprite);
 
-  return { group, line, glowLine, startDot, midDot, sprite, targetMesh };
+  return { group, line, glowLine, startDot, sprite, targetMesh };
 }
 
 function updateAnnotation(annotation) {
   if (!annotation) return;
-  const { line, glowLine, startDot, midDot, sprite, targetMesh } = annotation;
+  const { line, glowLine, startDot, sprite, targetMesh } = annotation;
 
   const targetPos = new THREE.Vector3();
   targetMesh.getWorldPosition(targetPos);
@@ -185,10 +206,10 @@ function updateAnnotation(annotation) {
   glowLine.computeLineDistances();
 
   startDot.position.copy(targetPos);
-  midDot.position.copy(midPos);
 
   sprite.position.copy(endPos);
-  sprite.position.x += 0.02;
+  sprite.position.x += spriteOffset.x;
+  sprite.position.y -= spriteOffset.y;
 }
 
 let cameraAnnotation = null;
@@ -199,6 +220,9 @@ export function setupPullApart() {
     cameraAnnotation.group.visible = false;
     scene.add(cameraAnnotation.group);
   }
+
+  gui.add(spriteOffset, 'x').min(-0.1).max(0.1).step(0.001).name('Sprite X');
+  gui.add(spriteOffset, 'y').min(-0.1).max(0.1).step(0.001).name('Sprite Y');
 
   window.addEventListener(
     'pullApart:show',

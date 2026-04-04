@@ -5,6 +5,7 @@ import { controls } from '@/utils/controls/controls';
 import { ambientLight, directionalLight } from '@/scene/lights/lights';
 import { galaxyModel } from '@/scene/models/galaxyModel';
 import { setupExplosion, renderExplosion } from '@/scene/models/explosionAnimation';
+import { setupPullApart, updatePullApart } from '@/scene/models/pullApart';
 import { setupScene } from './scene';
 import '@/styles/style.css';
 import { state } from './store/state';
@@ -18,6 +19,7 @@ async function init() {
   scene.add(model);
 
   await setupExplosion();
+  setupPullApart();
 
   setupScene();
 
@@ -37,6 +39,7 @@ async function init() {
     lastTime = now - (delta % frameDuration);
 
     controls.update();
+    updatePullApart();
 
     if (state.stage === 'explosion') {
       renderExplosion(scene, camera);

@@ -153,7 +153,7 @@ function showIntroText() {
     ease: 'power2.out',
   });
 
-  gsap.fromTo(
+  const titleTl = gsap.fromTo(
     title,
     { opacity: 0 },
     {
@@ -164,4 +164,27 @@ function showIntroText() {
       ease: 'power1.inOut',
     }
   );
+
+  // After text is fully visible, wait 1.5s then fade out and rotate phone
+  titleTl.then(() => {
+    gsap.to(container, {
+      opacity: 0,
+      duration: 1.5,
+      delay: 0,
+      ease: 'power2.inOut',
+      onComplete: () => {
+        container.remove();
+      },
+    });
+
+    gsap.to(models.galaxy.rotation, {
+      y: Math.PI,
+      duration: 2.5,
+      delay: 0.5,
+      ease: 'power2.inOut',
+      onComplete: () => {
+        window.dispatchEvent(new Event('pullApart:show'));
+      },
+    });
+  });
 }

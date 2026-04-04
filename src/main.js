@@ -7,6 +7,7 @@ import { galaxyModel } from '@/scene/models/galaxyModel';
 import { setupExplosion, renderExplosion } from '@/scene/models/explosionAnimation';
 import { setupScene } from './scene';
 import '@/styles/style.css';
+import { state } from './store/state';
 
 async function init() {
   scene.add(camera);
@@ -37,7 +38,11 @@ async function init() {
 
     controls.update();
 
-    renderExplosion(scene, camera);
+    if (state.stage === 'explosion') {
+      renderExplosion(scene, camera);
+    } else {
+      renderer.render(scene, camera);
+    }
   };
   window.requestAnimationFrame(tick);
 }

@@ -2,6 +2,7 @@ import gsap from 'gsap';
 import loadVideo from '@/utils/loader/videoLoader';
 import * as THREE from 'three';
 import { models } from '@/store/models';
+import { state } from '@/store/state';
 import { renderer } from '@/utils/renderer';
 
 const bgScene = new THREE.Scene();
@@ -82,6 +83,10 @@ export async function setupExplosion() {
         active = false;
       }
     },
+    onComplete: () => {
+      state.stage = 'idle';
+      showIntroText();
+    },
   });
 
   active = true;
@@ -99,4 +104,64 @@ export function renderExplosion(scene, camera) {
   if (!renderer.autoClear) {
     renderer.autoClear = true;
   }
+}
+
+function showIntroText() {
+  const container = document.createElement('div');
+  container.style.cssText = `
+    position: fixed;
+    bottom: 15%;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    pointer-events: none;
+    z-index: 10;
+  `;
+
+  const intro = document.createElement('p');
+  intro.textContent = 'Introducing...';
+  intro.style.cssText = `
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 1.2rem;
+    font-weight: 300;
+    color: #B8B0C8;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin: 0 0 0.5rem 0;
+    opacity: 0;
+  `;
+
+  const title = document.createElement('h1');
+  title.textContent = 'Galaxy S22';
+  title.style.cssText = `
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 3rem;
+    font-weight: 200;
+    color: #ffffff;
+    letter-spacing: 0.05em;
+    margin: 0;
+    opacity: 0;
+  `;
+
+  container.appendChild(intro);
+  container.appendChild(title);
+  document.body.appendChild(container);
+
+  gsap.to(intro, {
+    opacity: 1,
+    duration: 1,
+    ease: 'power2.out',
+  });
+
+  gsap.fromTo(
+    title,
+    { opacity: 0 },
+    {
+      opacity: 1,
+      y: 0,
+      duration: 3.5,
+      delay: 1,
+      ease: 'power1.inOut',
+    }
+  );
 }

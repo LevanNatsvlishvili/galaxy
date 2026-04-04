@@ -1,3 +1,3 @@
-const state = {
+export const state = {
   stage: 'explosion',
 };

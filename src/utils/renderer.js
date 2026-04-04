@@ -21,3 +21,4 @@ renderer.setPixelRatio(config.renderer.pixelRatio);
 renderer.shadowMap.enabled = config.renderer.shadowMap;
 renderer.shadowMap.type = config.renderer.shadowType;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;

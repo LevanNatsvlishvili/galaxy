@@ -58,3 +58,36 @@ Hard parts: The water droplets looking wet and realistic requires good environme
 Summary ranking by Three.js feasibility:
 ConceptFeasibilityWhy3 — Exploded Universe9/10Core Three.js strengths5 — Gravity Optional8/10Simple physics + particles1 — Born from Intelligence7/10Particle morphing is proven2 — Superconductor4/10Fluid sim is brutal in WebGL4 — Time Lapse3/10Needs offline rendering
 If I were picking for this brief, I'd go with Concept 3 for reliability or Concept 5 for wow-factor with manageable risk. Want me to develop either into a technical storyboard with specific Three.js implementation notes?
+
+
+M2_USB_1 USB_1
+galaxyModel.js:17 M2_Display_Activearea Display_Activearea
+galaxyModel.js:17 M2_BackCam_Glass BackCam_Glass
+galaxyModel.js:17 M2_BackCam_Ring BackCam_Ring
+galaxyModel.js:17 M2_Backcover_Glass_In Backcover_Glass_In
+galaxyModel.js:17 M2_Samsung_Logo Samsung_Logo
+galaxyModel.js:17 M2_Front_Bezel Front_Bezel
+galaxyModel.js:17 M2_Backcover_Glass Backcover_Glass
+galaxyModel.js:17 M2_Flash_Glass Flash_Glass
+galaxyModel.js:17 M2_BackCam_Case BackCam_Case
+galaxyModel.js:17 M2_USB_2 USB_2
+galaxyModel.js:17 M2_BackCam_Frame_2 BackCam_Frame_2
+galaxyModel.js:17 M2_BackCam_Frame_Edge BackCam_Frame_Edge
+galaxyModel.js:17 M2_BackCam_Lense BackCam_Lense
+galaxyModel.js:17 M2_BackCam_Case_Side BackCam_Case_Side
+galaxyModel.js:17 M2_FrontCam_Glass FrontCam_Glass
+galaxyModel.js:17 M2_BackCam_Case_Side_2 BackCam_Case_Side_2
+galaxyModel.js:17 M2_BackCam_Frame BackCam_Frame
+galaxyModel.js:17 M2_BackCam_Frame_Inside BackCam_Frame_Inside
+galaxyModel.js:17 M2_BackCam_Case_2 BackCam_Case_2
+galaxyModel.js:17 M2_Blackhole Blackhole
+galaxyModel.js:17 M2_BackCam_Case_Side_3 BackCam_Case_Side_3
+galaxyModel.js:17 M2_Rearcase_light Rearcase_light
+galaxyModel.js:17 M2_Rearcase_Hole Rearcase_hole
+galaxyModel.js:17 M2_Rearcase Rearcase
+galaxyModel.js:17 M2_Antenna_Plastic_light Antenna_Plastic_light
+galaxyModel.js:17 M2_Antenna_Plastic Antenna_Plastic
+galaxyModel.js:17 M2_BackCam_Case_3 BackCam_Case_3
+galaxyModel.js:17 M1_BackCam_Glass_AO BackCam_Glass_AO
+galaxyModel.js:17 M2_Flash Flash
+galaxyModel.js:17 M2_BackCam_Body BackCam_Body

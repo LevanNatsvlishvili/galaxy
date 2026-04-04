@@ -14,15 +14,6 @@ export const config = {
     // minDistance: 5,
   },
 
-  character: {
-    speed: 0.5,
-    startingPosition: { x: -0, y: 0.1, z: -0 },
-    attackRange: 0.15,
-    attackDamage: 1,
-    attackCooldown: 0.5,
-    health: 20,
-  },
-
   renderer: {
     pixelRatio: Math.min(window.devicePixelRatio, 2),
     shadowMap: true,
@@ -32,7 +23,7 @@ export const config = {
   lights: {
     ambient: {
       color: '#ffffff',
-      intensity: 5,
+      intensity: 15,
       nightIntensity: 0.4,
     },
     directional: {
@@ -45,20 +36,6 @@ export const config = {
         camera: { top: 8, right: 8, bottom: -8, left: -8, near: 1, far: 15 },
       },
     },
-  },
-
-  ground: {
-    size: 10,
-    color: 'green',
-    positionY: -0.5,
-  },
-
-  grid: {
-    cellSize: 0.1,
-    highlightColor: 0xffffff,
-    highlightOpacity: 0.3,
-    lineColor: 0xffffff,
-    lineOpacity: 0.15,
   },
 
   environment: {

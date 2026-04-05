@@ -15,6 +15,7 @@ camera.position.set(config.camera.position.x, config.camera.position.y, config.c
 export const renderer = new THREE.WebGLRenderer({
   canvas: canvas,
   preserveDrawingBuffer: true,
+  antialias: true,
 });
 renderer.setSize(screenSizes.width, screenSizes.height);
 renderer.setPixelRatio(config.renderer.pixelRatio);

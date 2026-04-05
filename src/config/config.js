@@ -28,7 +28,7 @@ export const config = {
     },
     directional: {
       color: '#ffffff',
-      intensity: 1,
+      intensity: 0,
       nightIntensity: 0,
       position: { x: -1.5, y: 2, z: -8 },
       shadow: {

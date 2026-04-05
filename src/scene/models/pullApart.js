@@ -5,15 +5,17 @@ import { Line2 } from 'three/examples/jsm/lines/Line2.js';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
 import * as THREE from 'three';
+import gui from '@/utils/gui';
 
 const LINE_COLOR = '#C0C8D4';
+const DOT_Z_OFFSET = 0.01;
 const DISASSEMBLE_DURATION = 2;
 const DISASSEMBLE_DELAY = 1;
 
 // Part groups: meshes that move together + their label + explode direction
 const PART_GROUPS = [
   {
-    label: 'Camera Module',
+    label: '200MP Camera',
     meshes: [
       'M2_BackCam_Case',
       'M2_BackCam_Case_2',
@@ -30,23 +32,27 @@ const PART_GROUPS = [
       'M2_BackCam_Frame_Inside',
       'M2_BackCam_Body',
       'M1_BackCam_Glass_AO',
-      // 'M2_Flash',
-      // 'M2_Flash_Glass',
       // 'M2_Blackhole',
     ],
-    offset: { x: 0, y: 0.02, z: -0.04 },
-    labelSide: 'right',
-  },
-  {
-    label: 'Back Cover',
-    meshes: ['M2_Backcover_Glass', 'M2_Backcover_Glass_In', 'M2_Samsung_Logo'],
-    offset: { x: 0, y: -0.008, z: -0.02 },
+    offset: { x: 0, y: 0.02, z: -0.08 },
     labelSide: 'left',
   },
   {
-    label: 'Type-C Port',
+    label: 'Aluminum frame',
+    meshes: [
+      'M2_Backcover_Glass',
+      'M2_Backcover_Glass_In',
+      'M2_Samsung_Logo',
+      'M2_Flash',
+      'M2_Flash_Glass',
+    ],
+    offset: { x: 0, y: -0.008, z: -0.04 },
+    labelSide: 'left',
+  },
+  {
+    label: 'Fast Charging',
     meshes: ['M2_USB_1', 'M2_USB_2'],
-    offset: { x: 0, y: -0.02, z: 0 },
+    offset: { x: 0, y: -0.04, z: 0 },
     labelSide: 'right',
   },
 ];
@@ -94,6 +100,12 @@ function createLabel(text) {
   const boxW = textWidth + padding * 2;
   const boxH = fontSize + padding;
 
+  // Black background fill
+  ctx.fillStyle = '#000000';
+  ctx.roundRect(boxX, boxY, boxW, boxH, 4);
+  ctx.fill();
+
+  // Glow border
   ctx.shadowColor = 'rgba(192, 200, 212, 0.4)';
   ctx.shadowBlur = 12;
   ctx.strokeStyle = 'rgba(192, 200, 212, 0.6)';
@@ -173,6 +185,12 @@ export function setupPullApart() {
   annotationGroup.visible = false;
   scene.add(annotationGroup);
 
+  const camOffset = PART_GROUPS[0].offset;
+  const camFolder = gui.addFolder('Camera Module');
+  camFolder.add(camOffset, 'x').min(-0.2).max(0.2).step(0.001).name('X');
+  camFolder.add(camOffset, 'y').min(-0.2).max(0.2).step(0.001).name('Y');
+  camFolder.add(camOffset, 'z').min(-0.2).max(0.2).step(0.001).name('Z');
+
   window.addEventListener(
     'pullApart:show',
     () => {
@@ -187,6 +205,14 @@ function startDisassembly() {
   if (!model) return;
 
   annotationGroup.visible = true;
+
+  // Log unassigned meshes
+  const assignedNames = PART_GROUPS.flatMap((p) => p.meshes);
+  model.traverse((child) => {
+    if (child.isMesh && !assignedNames.includes(child.name)) {
+      console.log('Unassigned mesh:', child.name);
+    }
+  });
 
   PART_GROUPS.forEach((partDef, i) => {
     const meshes = [];
@@ -233,20 +259,15 @@ function startDisassembly() {
     const annotation = createAnnotationLine(lineStart, lineEnd);
     annotationGroup.add(annotation.group);
 
-    partData.push({ meshes, originalPositions, label, annotation, partDef });
+    const progress = { value: 0 };
+    partData.push({ meshes, originalPositions, label, annotation, partDef, progress });
 
-    // Animate meshes exploding outward
-    meshes.forEach((mesh) => {
-      console.log(mesh);
-      // if(mesh.name.includes('M2_USB_1')) {}
-      gsap.to(mesh.position, {
-        x: mesh.position.x + partDef.offset.x,
-        y: mesh.position.y + partDef.offset.y,
-        z: mesh.position.z + partDef.offset.z,
-        duration: DISASSEMBLE_DURATION,
-        delay: DISASSEMBLE_DELAY + i * 0.3,
-        ease: 'power2.inOut',
-      });
+    // Animate progress 0→1, meshes update in updatePullApart
+    gsap.to(progress, {
+      value: 1,
+      duration: DISASSEMBLE_DURATION,
+      delay: DISASSEMBLE_DELAY + i * 0.3,
+      ease: 'power2.inOut',
     });
 
     // Fade in line and label after parts move
@@ -285,8 +306,18 @@ function startDisassembly() {
 export function updatePullApart() {
   if (!annotationGroup || !annotationGroup.visible) return;
 
-  partData.forEach(({ meshes, annotation, partDef }) => {
+  partData.forEach(({ meshes, originalPositions, label, annotation, partDef, progress }) => {
     if (meshes.length === 0) return;
+
+    // Apply offset * progress to mesh positions
+    meshes.forEach((mesh, j) => {
+      const orig = originalPositions[j];
+      mesh.position.set(
+        orig.x + partDef.offset.x * progress.value,
+        orig.y + partDef.offset.y * progress.value,
+        orig.z + partDef.offset.z * progress.value
+      );
+    });
 
     // Update line start to follow part center
     const center = new THREE.Vector3();
@@ -298,12 +329,21 @@ export function updatePullApart() {
     center.divideScalar(meshes.length);
 
     const labelDir = partDef.labelSide === 'right' ? 1 : -1;
-    const labelPos = center.clone();
-    labelPos.x += labelDir * 0.06;
-    labelPos.y += partDef.offset.y * 0.5;
 
-    const lineEnd = labelPos.clone();
-    lineEnd.x -= labelDir * 0.02;
+    // Line end = offset from center
+    const lineEnd = center.clone();
+    lineEnd.x += labelDir * 0.04;
+
+    // Label sits at the end of the line
+    // Left labels need extra offset to align text start with line end
+    const labelOffset = partDef.labelSide === 'left' ? 0.0125 : 0.025;
+    label.position.set(
+      lineEnd.x + labelDir * labelOffset,
+      lineEnd.y - 0.0025,
+      lineEnd.z + DOT_Z_OFFSET
+    );
+
+    center.z += DOT_Z_OFFSET;
 
     const positions = [center.x, center.y, center.z, lineEnd.x, lineEnd.y, lineEnd.z];
 

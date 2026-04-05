@@ -10,10 +10,23 @@ import gui from '@/utils/gui';
 const LINE_COLOR = '#C0C8D4';
 const DOT_Z_OFFSET = 0.01;
 const DISASSEMBLE_DURATION = 2;
-const DISASSEMBLE_DELAY = 1;
+const DISASSEMBLE_DELAY = 0;
+const ASSEMBLE_DELAY = 3;
 
 // Part groups: meshes that move together + their label + explode direction
 const PART_GROUPS = [
+  {
+    label: 'Aluminum frame',
+    meshes: [
+      'M2_Backcover_Glass',
+      'M2_Backcover_Glass_In',
+      'M2_Samsung_Logo',
+      'M2_Flash',
+      'M2_Flash_Glass',
+    ],
+    offset: { x: 0, y: -0.008, z: -0.04 },
+    labelSide: 'left',
+  },
   {
     label: '200MP Camera',
     meshes: [
@@ -35,18 +48,6 @@ const PART_GROUPS = [
       // 'M2_Blackhole',
     ],
     offset: { x: 0, y: 0.02, z: -0.08 },
-    labelSide: 'left',
-  },
-  {
-    label: 'Aluminum frame',
-    meshes: [
-      'M2_Backcover_Glass',
-      'M2_Backcover_Glass_In',
-      'M2_Samsung_Logo',
-      'M2_Flash',
-      'M2_Flash_Glass',
-    ],
-    offset: { x: 0, y: -0.008, z: -0.04 },
     labelSide: 'left',
   },
   {
@@ -266,12 +267,12 @@ function startDisassembly() {
     gsap.to(progress, {
       value: 1,
       duration: DISASSEMBLE_DURATION,
-      delay: DISASSEMBLE_DELAY + i * 0.3,
+      delay: DISASSEMBLE_DELAY,
       ease: 'power2.inOut',
     });
 
     // Fade in line and label after parts move
-    const fadeDelay = DISASSEMBLE_DELAY + i * 0.3 + DISASSEMBLE_DURATION * 0.5;
+    const fadeDelay = DISASSEMBLE_DELAY + DISASSEMBLE_DURATION * 0.5;
 
     gsap.to(annotation.lineMat, {
       opacity: 0.9,
@@ -299,6 +300,53 @@ function startDisassembly() {
       duration: 1.2,
       delay: fadeDelay + 0.3,
       ease: 'power2.out',
+    });
+  });
+
+  // Reassemble after delay
+  const assembleStart = DISASSEMBLE_DELAY + DISASSEMBLE_DURATION + ASSEMBLE_DELAY;
+
+  PART_GROUPS.forEach((partDef, i) => {
+    const data = partData[i];
+    if (!data) return;
+
+    const stagger = i * 0.3;
+
+    // Fade out labels and lines first
+    gsap.to(data.annotation.lineMat, {
+      opacity: 0,
+      duration: 0.8,
+      delay: assembleStart + stagger,
+      ease: 'power2.in',
+    });
+
+    gsap.to(data.annotation.glowMat, {
+      opacity: 0,
+      duration: 0.8,
+      delay: assembleStart + stagger,
+      ease: 'power2.in',
+    });
+
+    gsap.to(data.annotation.dot.material, {
+      opacity: 0,
+      duration: 0.8,
+      delay: assembleStart + stagger,
+      ease: 'power2.in',
+    });
+
+    gsap.to(data.label.material, {
+      opacity: 0,
+      duration: 0.8,
+      delay: assembleStart + stagger,
+      ease: 'power2.in',
+    });
+
+    // Animate parts back
+    gsap.to(data.progress, {
+      value: 0,
+      duration: DISASSEMBLE_DURATION,
+      delay: assembleStart + stagger + 0.5,
+      ease: 'power2.inOut',
     });
   });
 }

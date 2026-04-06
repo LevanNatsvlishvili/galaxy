@@ -39,7 +39,6 @@ function applyColor(gltf, hex) {
 }
 
 export async function galaxyModel() {
-  const group = new THREE.Group();
   const pinkGold = await gltfLoader.loadAsync('./models/pink-gold.glb');
   console.log(pinkGold.scene.children);
   const black = await gltfLoader.loadAsync('./models/black.glb');
@@ -55,21 +54,9 @@ export async function galaxyModel() {
   applyColor(skyBlue, MODEL_COLORS['sky-blue']);
   applyColor(white, MODEL_COLORS['white']);
 
-  pinkGold.scene.position.set(0.1, 0, 0);
-  black.scene.position.set(0.2, 0, 0);
-  // cobaltViolet.scene.position.set(0.3, 0, 0);
-  silverShadow.scene.position.set(0.4, 0, 0);
-  skyBlue.scene.position.set(0.5, 0, 0);
-  white.scene.position.set(0.6, 0, 0);
-
-  group.add(pinkGold.scene);
-  group.add(black.scene);
-  group.add(cobaltViolet.scene);
-  group.add(silverShadow.scene);
-  group.add(skyBlue.scene);
-  group.add(white.scene);
-
   models.galaxy = cobaltViolet.scene;
+  // Other variants — hidden until colors animation triggers
+  models.variants = [pinkGold.scene, black.scene, silverShadow.scene, skyBlue.scene, white.scene];
 
   return cobaltViolet.scene;
 }

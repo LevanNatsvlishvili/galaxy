@@ -6,9 +6,14 @@ import { ambientLight, directionalLight } from '@/scene/lights/lights';
 import { galaxyModel } from '@/scene/models/galaxyModel';
 import { setupExplosion, renderExplosion } from '@/scene/models/explosionAnimation';
 import { setupPullApart, updatePullApart } from '@/scene/models/pullApart';
+import { setupColors } from '@/scene/models/colors';
 import { setupScene } from './scene';
 import '@/styles/style.css';
 import { state } from './store/state';
+
+// DEBUG: skip explosion → intro → pullApart and jump straight to colors.
+// Set to false to restore the full sequence.
+const SKIP_TO_COLORS = true;
 
 async function init() {
   scene.add(camera);
@@ -18,8 +23,17 @@ async function init() {
   const model = await galaxyModel();
   scene.add(model);
 
-  await setupExplosion();
-  setupPullApart();
+  if (SKIP_TO_COLORS) {
+    state.stage = 'idle';
+    model.position.z = 0;
+    model.rotation.y = Math.PI;
+    setupColors();
+    requestAnimationFrame(() => window.dispatchEvent(new Event('colors:show')));
+  } else {
+    await setupExplosion();
+    setupPullApart();
+    setupColors();
+  }
 
   setupScene();
 

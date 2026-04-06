@@ -349,6 +349,20 @@ function startDisassembly() {
       ease: 'power2.inOut',
     });
   });
+
+  // After reassembly completes, rotate phone to face camera
+  const lastStagger = (PART_GROUPS.length - 1) * 0.3;
+  const rotateDelay = assembleStart + lastStagger + 0.5 + DISASSEMBLE_DURATION;
+
+  gsap.to(model.rotation, {
+    y: Math.PI,
+    duration: 2,
+    delay: rotateDelay,
+    ease: 'power2.inOut',
+    onComplete: () => {
+      window.dispatchEvent(new Event('colors:show'));
+    },
+  });
 }
 
 export function updatePullApart() {

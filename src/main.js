@@ -1,7 +1,7 @@
 import { camera, renderer, scene } from './utils/renderer';
 import windowResizer from '@/utils/windowResizer';
 import { config } from '@/config/config';
-import { controls } from '@/utils/controls/controls';
+// import { controls } from '@/utils/controls/controls';
 import { ambientLight, directionalLight } from '@/scene/lights/lights';
 import { galaxyModel } from '@/scene/models/galaxyModel';
 import { setupExplosion, renderExplosion } from '@/scene/models/explosionAnimation';
@@ -52,7 +52,7 @@ async function init() {
 
     lastTime = now - (delta % frameDuration);
 
-    controls.update();
+    // controls.update();
     updatePullApart();
 
     if (state.stage === 'explosion') {

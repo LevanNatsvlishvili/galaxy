@@ -2,6 +2,7 @@ import gsap from 'gsap';
 import * as THREE from 'three';
 import { models } from '@/store/models';
 import { scene } from '@/utils/renderer';
+import { setupWhiteboard, showDrawPanel, revealPen } from './whiteboard';
 
 const SPACING = 0.1;
 const REVEAL_DURATION = 1.4;
@@ -162,7 +163,13 @@ function revealColors() {
 
     // Label fades in just after this phone reaches its slot
     labelSprites.push(
-      attachLabel(variant, VARIANT_LABELS[i], targetX, main.position.y, delay + REVEAL_DURATION * 0.6)
+      attachLabel(
+        variant,
+        VARIANT_LABELS[i],
+        targetX,
+        main.position.y,
+        delay + REVEAL_DURATION * 0.6
+      )
     );
   });
 
@@ -225,19 +232,15 @@ function showWhiteboard() {
   const main = models.galaxy;
   if (!main) return;
 
-  // Swap the display material for a plain whiteboard
-  const display = main.getObjectByName('M2_Display_Activearea');
-  if (display) {
-    display.material = new THREE.MeshBasicMaterial({
-      color: 0xffffff,
-      toneMapped: false,
-    });
-  }
+  // Install the drawable whiteboard texture + pen before rotating
+  setupWhiteboard(main);
 
   // Rotate the phone 180° to show the whiteboard side
   gsap.to(main.rotation, {
     y: main.rotation.y + Math.PI,
     duration: 2,
     ease: 'power2.inOut',
+    onStart: () => revealPen({ delay: 1 }),
+    onComplete: () => showDrawPanel(),
   });
 }

@@ -7,6 +7,7 @@ const SPACING = 0.1;
 const REVEAL_DURATION = 1.4;
 const STAGGER = 0.5;
 const LABEL_Y_OFFSET = -0.09;
+const HOLD_DURATION = 3;
 
 // Layout: 3 to the left, main in center, 2 to the right
 // Index in models.variants → slot offset (in spacing units)
@@ -91,6 +92,8 @@ function showHeading() {
     duration: 1.4,
     ease: 'power2.out',
   });
+
+  return heading;
 }
 
 export function setupColors() {
@@ -122,10 +125,17 @@ function revealColors() {
   const main = models.galaxy;
   if (!main || !models.variants?.length) return;
 
-  showHeading();
+  const heading = showHeading();
+  const labelSprites = [];
 
   // Label for the main (center) phone
-  attachLabel(main, MAIN_LABEL, main.position.x, main.position.y, STAGGER * LAYOUT.length + 0.2);
+  const mainLabelDelay = STAGGER * LAYOUT.length + 0.2;
+  labelSprites.push(
+    attachLabel(main, MAIN_LABEL, main.position.x, main.position.y, mainLabelDelay)
+  );
+
+  // Track when the last variant finishes sliding in — used to schedule hide
+  let lastArrivalTime = 0;
 
   models.variants.forEach((variant, i) => {
     // Match main model orientation and start hidden behind it
@@ -139,6 +149,8 @@ function revealColors() {
     const targetX = main.position.x + LAYOUT[i] * SPACING;
     const targetZ = main.position.z;
     const delay = i * STAGGER;
+    const arrival = delay + REVEAL_DURATION;
+    if (arrival > lastArrivalTime) lastArrivalTime = arrival;
 
     gsap.to(variant.position, {
       x: targetX,
@@ -149,6 +161,83 @@ function revealColors() {
     });
 
     // Label fades in just after this phone reaches its slot
-    attachLabel(variant, VARIANT_LABELS[i], targetX, main.position.y, delay + REVEAL_DURATION * 0.6);
+    labelSprites.push(
+      attachLabel(variant, VARIANT_LABELS[i], targetX, main.position.y, delay + REVEAL_DURATION * 0.6)
+    );
+  });
+
+  // Schedule the hide sequence after all variants arrive + hold
+  const hideStart = lastArrivalTime + HOLD_DURATION;
+  hideColors({ heading, labelSprites, delay: hideStart });
+}
+
+function hideColors({ heading, labelSprites, delay }) {
+  const main = models.galaxy;
+
+  // Fade out heading DOM element
+  gsap.to(heading, {
+    opacity: 0,
+    duration: 1,
+    delay,
+    ease: 'power2.in',
+    onComplete: () => heading.remove(),
+  });
+
+  // Fade out label sprites
+  labelSprites.forEach((sprite) => {
+    gsap.to(sprite.material, {
+      opacity: 0,
+      duration: 1,
+      delay,
+      ease: 'power2.in',
+      onComplete: () => {
+        scene.remove(sprite);
+        sprite.material.map?.dispose();
+        sprite.material.dispose();
+      },
+    });
+  });
+
+  // Retract variants in reverse order (outermost first) back behind the main
+  const retractStart = delay + 0.8;
+  const variants = models.variants;
+
+  const reversed = [...variants].reverse();
+  reversed.forEach((variant, revIdx) => {
+    const stagger = revIdx * STAGGER;
+    const isLast = revIdx === reversed.length - 1;
+
+    gsap.to(variant.position, {
+      x: main.position.x,
+      z: -0.01 * (variants.length - revIdx),
+      duration: REVEAL_DURATION,
+      delay: retractStart + stagger,
+      ease: 'power2.in',
+      onComplete: () => {
+        scene.remove(variant);
+        if (isLast) showWhiteboard();
+      },
+    });
+  });
+}
+
+function showWhiteboard() {
+  const main = models.galaxy;
+  if (!main) return;
+
+  // Swap the display material for a plain whiteboard
+  const display = main.getObjectByName('M2_Display_Activearea');
+  if (display) {
+    display.material = new THREE.MeshBasicMaterial({
+      color: 0xffffff,
+      toneMapped: false,
+    });
+  }
+
+  // Rotate the phone 180° to show the whiteboard side
+  gsap.to(main.rotation, {
+    y: main.rotation.y + Math.PI,
+    duration: 2,
+    ease: 'power2.inOut',
   });
 }

@@ -1,10 +1,13 @@
 import { camera, renderer, scene } from './utils/renderer';
 import windowResizer from '@/utils/windowResizer';
 import { config } from '@/config/config';
-// import { controls } from '@/utils/controls/controls';
 import { ambientLight, directionalLight } from '@/scene/lights/lights';
 import { galaxyModel } from '@/scene/models/galaxyModel';
-import { preloadExplosionAssets, setupExplosion, renderExplosion } from '@/scene/models/explosionAnimation';
+import {
+  preloadExplosionAssets,
+  setupExplosion,
+  renderExplosion,
+} from '@/scene/models/explosionAnimation';
 import { setupPullApart, updatePullApart } from '@/scene/models/pullApart';
 import { setupColors } from '@/scene/models/colors';
 import { setupScene } from './scene';
@@ -21,22 +24,21 @@ function createLoaderUI() {
   overlay.className = 'loader-overlay';
   overlay.innerHTML = `
     <div class="loader-content">
-      <p class="loader-progress">0%</p>
+      <p class="loader-dots" aria-label="Loading">
+        <span></span><span></span><span></span>
+      </p>
       <button class="loader-start" disabled>Start</button>
     </div>
   `;
   document.body.appendChild(overlay);
 
-  const progressEl = overlay.querySelector('.loader-progress');
+  const dotsEl = overlay.querySelector('.loader-dots');
   const startBtn = overlay.querySelector('.loader-start');
 
   return {
-    setProgress(loaded, total) {
-      const percent = total > 0 ? Math.round((loaded / total) * 100) : 0;
-      progressEl.textContent = `${percent}%`;
-    },
+    setProgress() {},
     setReady() {
-      progressEl.textContent = '100%';
+      dotsEl.remove();
       startBtn.disabled = false;
       startBtn.textContent = 'Start';
     },

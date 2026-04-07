@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 import gsap from 'gsap';
-import { scene, camera } from '@/utils/renderer';
-import gui from '@/utils/gui';
+import { camera } from '@/utils/renderer';
 
 const CANVAS_SIZE = 1024;
 const STROKE_COLOR = '#1f2937';
@@ -346,25 +345,6 @@ export function setupWhiteboard(model) {
     penMesh.parent.worldToLocal(tmpWorld);
     penTipLocalOffset.copy(tmpWorld).sub(penMesh.position);
   }
-
-  gui
-    .add(penMesh.rotation, 'y')
-    .min(-Math.PI / 3)
-    .max(Math.PI * 2)
-    .step(0.01)
-    .name('Pen Rotation Y');
-  gui
-    .add(penMesh.rotation, 'x')
-    .min(-Math.PI / 3)
-    .max(Math.PI * 2)
-    .step(Math.PI / 9)
-    .name('Pen Rotation X');
-  gui
-    .add(penMesh.rotation, 'z')
-    .min(-Math.PI / 3)
-    .max(Math.PI * 2)
-    .step(0.01)
-    .name('Pen Rotation Z');
 
   window.addEventListener('pointerdown', onPointerDown);
   window.addEventListener('pointermove', onPointerMove);

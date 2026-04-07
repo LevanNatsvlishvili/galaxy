@@ -1,53 +1,33 @@
 import gsap from 'gsap';
 import * as THREE from 'three';
+import gui from '@/utils/gui';
 import { models } from '@/store/models';
 import { scene } from '@/utils/renderer';
 import { setupWhiteboard, showDrawPanel, revealPen } from './whiteboard';
 
-const SPACING = 0.1;
 const REVEAL_DURATION = 1.4;
-const STAGGER = 0.5;
-const LABEL_Y_OFFSET = -0.09;
+const STAGGER = 0.1;
 const HOLD_DURATION = 3;
 
-// Layout: 3 to the left, main in center, 2 to the right
-// Index in models.variants → slot offset (in spacing units)
-// Order matches stagger sequence — innermost slots emerge first so each
-// outer variant comes out from behind the previous one.
+// Card-fan angle by distance from center slot (degrees).
+// 1-step: 30deg, 2-step: 50deg, 3-step: 75deg.
+const FAN_ANGLE_BY_SLOT = {
+  1: 30,
+  2: 50,
+  3: 75,
+};
+const FAN_X_PER_SLOT = 0.028;
+const FURTHEST_LEFT_X_NUDGE = -0.012;
+const LAST_VARIANT_REVEAL_X = -0.058;
 const LAYOUT = [-1, 1, -2, 2, -3];
+
+const zStackBehind = (i, total) => -0.008 * (i + 1);
+const fanAngleRad = (slot) =>
+  THREE.MathUtils.degToRad((FAN_ANGLE_BY_SLOT[Math.abs(slot)] ?? 30) * Math.sign(slot));
+const FAN_Y_DROP_PER_SLOT = 0.01;
 
 // Main model is cobalt-violet. Variants order in models.variants:
 // [pinkGold, black, silverShadow, skyBlue, white]
-const MAIN_LABEL = 'Cobalt Violet';
-const VARIANT_LABELS = ['Pink Gold', 'Phantom Black', 'Silver Shadow', 'Sky Blue', 'White'];
-
-function createLabelSprite(text) {
-  const canvas = document.createElement('canvas');
-  canvas.width = 512;
-  canvas.height = 96;
-  const ctx = canvas.getContext('2d');
-
-  const fontSize = 40;
-  ctx.font = `300 ${fontSize}px Helvetica Neue, Arial, sans-serif`;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillStyle = '#D2DCE8';
-  ctx.shadowColor = 'rgba(192, 200, 212, 0.35)';
-  ctx.shadowBlur = 10;
-  ctx.fillText(text, canvas.width / 2, canvas.height / 2);
-
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  const mat = new THREE.SpriteMaterial({
-    map: texture,
-    transparent: true,
-    depthWrite: false,
-    opacity: 0,
-  });
-  const sprite = new THREE.Sprite(mat);
-  sprite.scale.set(0.08, 0.015, 1);
-  return sprite;
-}
 
 function showHeading() {
   const heading = document.createElement('div');
@@ -107,48 +87,30 @@ export function setupColors() {
   );
 }
 
-function attachLabel(phone, text, worldX, worldY, delay) {
-  const sprite = createLabelSprite(text);
-  sprite.position.set(worldX, worldY + LABEL_Y_OFFSET, phone.position.z);
-  scene.add(sprite);
-
-  gsap.to(sprite.material, {
-    opacity: 1,
-    duration: 1,
-    delay,
-    ease: 'power2.out',
-  });
-
-  return sprite;
-}
-
 function revealColors() {
   const main = models.galaxy;
   if (!main || !models.variants?.length) return;
+  const lastVariant = models.variants[models.variants.length - 1];
 
   const heading = showHeading();
-  const labelSprites = [];
 
-  // Label for the main (center) phone
-  const mainLabelDelay = STAGGER * LAYOUT.length + 0.2;
-  labelSprites.push(
-    attachLabel(main, MAIN_LABEL, main.position.x, main.position.y, mainLabelDelay)
-  );
-
-  // Track when the last variant finishes sliding in — used to schedule hide
+  // Track when the last variant finishes fanning in — used to schedule hide
   let lastArrivalTime = 0;
 
   models.variants.forEach((variant, i) => {
-    // Match main model orientation and start hidden behind it
     variant.rotation.copy(main.rotation);
     variant.position.copy(main.position);
-    variant.position.z = -0.01 * (i + 1);
+    variant.position.z = main.position.z + zStackBehind(i, models.variants.length);
+    variant.position.y = main.position.y;
     variant.scale.copy(main.scale);
 
     scene.add(variant);
 
-    const targetX = main.position.x + LAYOUT[i] * SPACING;
-    const targetZ = main.position.z;
+    const deltaAngle = fanAngleRad(LAYOUT[i]);
+    const baseTargetX =
+      main.position.x + LAYOUT[i] * FAN_X_PER_SLOT + (LAYOUT[i] === -3 ? FURTHEST_LEFT_X_NUDGE : 0);
+    const targetX = i === models.variants.length - 1 ? LAST_VARIANT_REVEAL_X : baseTargetX;
+    const targetZ = main.position.z + zStackBehind(i, models.variants.length);
     const delay = i * STAGGER;
     const arrival = delay + REVEAL_DURATION;
     if (arrival > lastArrivalTime) lastArrivalTime = arrival;
@@ -161,24 +123,35 @@ function revealColors() {
       ease: 'power2.out',
     });
 
-    // Label fades in just after this phone reaches its slot
-    labelSprites.push(
-      attachLabel(
-        variant,
-        VARIANT_LABELS[i],
-        targetX,
-        main.position.y,
-        delay + REVEAL_DURATION * 0.6
-      )
-    );
+    gsap.to(variant.position, {
+      y: main.position.y - Math.abs(LAYOUT[i]) * FAN_Y_DROP_PER_SLOT,
+      duration: REVEAL_DURATION,
+      delay,
+      ease: 'power2.out',
+    });
+
+    gsap.to(variant.rotation, {
+      z: main.rotation.z + deltaAngle,
+      duration: REVEAL_DURATION,
+      delay,
+      ease: 'power2.out',
+    });
+
   });
+
+  if (lastVariant && !lastVariant.userData.guiXZAdded) {
+    lastVariant.userData.guiXZAdded = true;
+    const folder = gui.addFolder('Last Variant');
+    folder.add(lastVariant.position, 'x').min(-1).max(1).step(0.001).name('x');
+    folder.add(lastVariant.position, 'z').min(-1).max(1).step(0.001).name('z');
+  }
 
   // Schedule the hide sequence after all variants arrive + hold
   const hideStart = lastArrivalTime + HOLD_DURATION;
-  hideColors({ heading, labelSprites, delay: hideStart });
+  hideColors({ heading, delay: hideStart });
 }
 
-function hideColors({ heading, labelSprites, delay }) {
+function hideColors({ heading, delay }) {
   const main = models.galaxy;
 
   // Fade out heading DOM element
@@ -190,21 +163,6 @@ function hideColors({ heading, labelSprites, delay }) {
     onComplete: () => heading.remove(),
   });
 
-  // Fade out label sprites
-  labelSprites.forEach((sprite) => {
-    gsap.to(sprite.material, {
-      opacity: 0,
-      duration: 1,
-      delay,
-      ease: 'power2.in',
-      onComplete: () => {
-        scene.remove(sprite);
-        sprite.material.map?.dispose();
-        sprite.material.dispose();
-      },
-    });
-  });
-
   // Retract variants in reverse order (outermost first) back behind the main
   const retractStart = delay + 0.8;
   const variants = models.variants;
@@ -212,11 +170,19 @@ function hideColors({ heading, labelSprites, delay }) {
   const reversed = [...variants].reverse();
   reversed.forEach((variant, revIdx) => {
     const stagger = revIdx * STAGGER;
+    const originalIndex = variants.length - 1 - revIdx;
     const isLast = revIdx === reversed.length - 1;
+    gsap.to(variant.rotation, {
+      z: main.rotation.z,
+      duration: REVEAL_DURATION,
+      delay: retractStart + stagger,
+      ease: 'power2.in',
+    });
 
     gsap.to(variant.position, {
       x: main.position.x,
-      z: -0.01 * (variants.length - revIdx),
+      y: main.position.y,
+      z: main.position.z + zStackBehind(originalIndex, variants.length),
       duration: REVEAL_DURATION,
       delay: retractStart + stagger,
       ease: 'power2.in',

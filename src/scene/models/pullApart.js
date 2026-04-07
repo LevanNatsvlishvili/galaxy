@@ -5,7 +5,6 @@ import { Line2 } from 'three/examples/jsm/lines/Line2.js';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
 import * as THREE from 'three';
-import gui from '@/utils/gui';
 
 const LINE_COLOR = '#C0C8D4';
 const DOT_Z_OFFSET = 0.01;
@@ -185,12 +184,6 @@ export function setupPullApart() {
   annotationGroup = new THREE.Group();
   annotationGroup.visible = false;
   scene.add(annotationGroup);
-
-  const camOffset = PART_GROUPS[0].offset;
-  const camFolder = gui.addFolder('Camera Module');
-  camFolder.add(camOffset, 'x').min(-0.2).max(0.2).step(0.001).name('X');
-  camFolder.add(camOffset, 'y').min(-0.2).max(0.2).step(0.001).name('Y');
-  camFolder.add(camOffset, 'z').min(-0.2).max(0.2).step(0.001).name('Z');
 
   window.addEventListener(
     'pullApart:show',

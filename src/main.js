@@ -4,13 +4,13 @@ import { config } from '@/config/config';
 // import { controls } from '@/utils/controls/controls';
 import { ambientLight, directionalLight } from '@/scene/lights/lights';
 import { galaxyModel } from '@/scene/models/galaxyModel';
-import { setupExplosion, renderExplosion } from '@/scene/models/explosionAnimation';
+import { preloadExplosionAssets, setupExplosion, renderExplosion } from '@/scene/models/explosionAnimation';
 import { setupPullApart, updatePullApart } from '@/scene/models/pullApart';
 import { setupColors } from '@/scene/models/colors';
 import { setupScene } from './scene';
 import '@/styles/style.css';
 import { state } from './store/state';
-import { onLoadComplete, onLoadProgress } from '@/utils/loader/loadingManager';
+import { onLoadProgress } from '@/utils/loader/loadingManager';
 
 // DEBUG: skip explosion → intro → pullApart and jump straight to colors.
 // Set to true only when iterating on colors stage.
@@ -59,7 +59,6 @@ function createLoaderUI() {
 async function init() {
   const loader = createLoaderUI();
   onLoadProgress((loaded, total) => loader.setProgress(loaded, total));
-  onLoadComplete(() => loader.setReady());
 
   scene.add(camera);
   scene.add(ambientLight, directionalLight);
@@ -71,6 +70,12 @@ async function init() {
   setupScene();
 
   renderer.compile(scene, camera);
+
+  if (!SKIP_TO_COLORS) {
+    await preloadExplosionAssets();
+  }
+
+  loader.setReady();
 
   await loader.waitForStart();
 

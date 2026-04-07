@@ -22,6 +22,15 @@ const PHONE_BEHIND_Z = 1.91;
 const PHONE_DELAY = 1.5;
 const ENTRANCE_DURATION = 2.5;
 
+export async function preloadExplosionAssets() {
+  if (explosionVideo) return;
+  const video = await loadVideo('/explosion.mp4');
+  video.playbackRate = 0.76;
+  video.currentTime = 0;
+  video.pause();
+  explosionVideo = video;
+}
+
 function findScreenMesh(model) {
   const keywords = ['display'];
   let found = null;
@@ -46,10 +55,13 @@ export async function setupExplosion() {
     originalScreenMaterial = screenMesh.material;
   }
 
-  const video = await loadVideo('/explosion.mp4');
-  video.play();
-  video.playbackRate = 0.76;
-  explosionVideo = video;
+  if (!explosionVideo) {
+    await preloadExplosionAssets();
+  }
+
+  const video = explosionVideo;
+  video.currentTime = 0;
+  video.play().catch(() => {});
 
   const videoTexture = new THREE.VideoTexture(video);
   videoTexture.colorSpace = THREE.SRGBColorSpace;

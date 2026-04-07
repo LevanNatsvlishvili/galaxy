@@ -88,7 +88,6 @@ export function setupColors() {
 function revealColors() {
   const main = models.galaxy;
   if (!main || !models.variants?.length) return;
-  const lastVariant = models.variants[models.variants.length - 1];
 
   const heading = showHeading();
 
@@ -140,13 +139,6 @@ function revealColors() {
   // compilation hitch on this stage (seen when colors runs after prior stages).
   scene.updateMatrixWorld(true);
   renderer.compile(scene, camera);
-
-  if (lastVariant && !lastVariant.userData.guiXZAdded) {
-    lastVariant.userData.guiXZAdded = true;
-    const folder = gui.addFolder('Last Variant');
-    folder.add(lastVariant.position, 'x').min(-1).max(1).step(0.001).name('x');
-    folder.add(lastVariant.position, 'z').min(-1).max(1).step(0.001).name('z');
-  }
 
   // Schedule the hide sequence after all variants arrive + hold
   const hideStart = lastArrivalTime + HOLD_DURATION;

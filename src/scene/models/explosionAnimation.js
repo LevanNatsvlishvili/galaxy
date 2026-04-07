@@ -48,7 +48,7 @@ export async function setupExplosion() {
 
   const video = await loadVideo('/explosion.mp4');
   video.play();
-  video.playbackRate = 1;
+  video.playbackRate = 0.76;
   explosionVideo = video;
 
   const videoTexture = new THREE.VideoTexture(video);
@@ -187,7 +187,7 @@ function showIntroText() {
   `;
 
   const title = document.createElement('h1');
-  title.textContent = 'Galaxy S22';
+  title.textContent = 'Galaxy S26';
   title.style.cssText = `
     font-family: 'Helvetica Neue', Arial, sans-serif;
     font-size: 3rem;

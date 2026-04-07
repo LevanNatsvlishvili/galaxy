@@ -40,7 +40,6 @@ function applyColor(gltf, hex) {
 
 export async function galaxyModel() {
   const pinkGold = await gltfLoader.loadAsync('./models/pink-gold.glb');
-  console.log(pinkGold.scene.children);
   const black = await gltfLoader.loadAsync('./models/black.glb');
   const cobaltViolet = await gltfLoader.loadAsync('./models/cobalt-violet.glb');
   const silverShadow = await gltfLoader.loadAsync('./models/silver-shadow.glb');

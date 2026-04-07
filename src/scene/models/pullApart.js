@@ -202,11 +202,6 @@ function startDisassembly() {
 
   // Log unassigned meshes
   const assignedNames = PART_GROUPS.flatMap((p) => p.meshes);
-  model.traverse((child) => {
-    if (child.isMesh && !assignedNames.includes(child.name)) {
-      console.log('Unassigned mesh:', child.name);
-    }
-  });
 
   PART_GROUPS.forEach((partDef, i) => {
     const meshes = [];

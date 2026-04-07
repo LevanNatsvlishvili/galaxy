@@ -30,3 +30,62 @@ body {
 #ui-container canvas {
   display: block;
 }
+
+.loader-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  background: #000;
+  transition: opacity 0.35s ease;
+}
+
+.loader-overlay.is-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.loader-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.8rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  color: #d2dce8;
+}
+
+.loader-title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 300;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.loader-progress {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 300;
+  color: #b8b0c8;
+  letter-spacing: 0.08em;
+}
+
+.loader-start {
+  margin-top: 0.4rem;
+  padding: 0.6rem 2.2rem;
+  border-radius: 999px;
+  border: 1px solid rgba(192, 200, 212, 0.6);
+  background: transparent;
+  color: #d2dce8;
+  font-family: inherit;
+  font-size: 0.9rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.loader-start:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}

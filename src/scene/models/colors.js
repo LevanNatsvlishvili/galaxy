@@ -1,6 +1,5 @@
 import gsap from 'gsap';
 import * as THREE from 'three';
-import gui from '@/utils/gui';
 import { models } from '@/store/models';
 import { camera, renderer, scene } from '@/utils/renderer';
 import { setupWhiteboard, showDrawPanel, revealPen } from './whiteboard';
@@ -43,7 +42,7 @@ function showHeading() {
   `;
 
   const eyebrow = document.createElement('p');
-  eyebrow.textContent = 'Galaxy S22';
+  eyebrow.textContent = 'Galaxy S26';
   eyebrow.style.cssText = `
     font-size: 0.9rem;
     font-weight: 300;

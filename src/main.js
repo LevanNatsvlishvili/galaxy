@@ -12,8 +12,8 @@ import '@/styles/style.css';
 import { state } from './store/state';
 
 // DEBUG: skip explosion → intro → pullApart and jump straight to colors.
-// Set to false to restore the full sequence.
-const SKIP_TO_COLORS = true;
+// Set to true only when iterating on colors stage.
+const SKIP_TO_COLORS = false;
 
 async function init() {
   scene.add(camera);

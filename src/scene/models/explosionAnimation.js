@@ -10,6 +10,13 @@ const bgCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
 
 let screenMesh = null;
 let active = false;
+let originalScreenMaterial = null;
+let explosionVideo = null;
+let bgQuad = null;
+let bgMaterial = null;
+let bgVideoTexture = null;
+let screenVideoTexture = null;
+let blackScreenMaterial = null;
 
 const PHONE_BEHIND_Z = 1.91;
 const PHONE_DELAY = 1.5;
@@ -35,26 +42,32 @@ export async function setupExplosion() {
   model.position.z = PHONE_BEHIND_Z;
 
   screenMesh = findScreenMesh(model);
+  if (screenMesh && !originalScreenMaterial) {
+    originalScreenMaterial = screenMesh.material;
+  }
 
   const video = await loadVideo('/explosion.mp4');
   video.play();
   video.playbackRate = 1;
+  explosionVideo = video;
 
   const videoTexture = new THREE.VideoTexture(video);
   videoTexture.colorSpace = THREE.SRGBColorSpace;
+  bgVideoTexture = videoTexture;
 
   // Fullscreen background quad
-  const bgMaterial = new THREE.MeshBasicMaterial({
+  bgMaterial = new THREE.MeshBasicMaterial({
     map: videoTexture,
     depthWrite: false,
   });
-  const bgQuad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), bgMaterial);
+  bgQuad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), bgMaterial);
   bgScene.add(bgQuad);
 
   // Phone screen texture
   const screenTexture = new THREE.VideoTexture(video);
   screenTexture.colorSpace = THREE.SRGBColorSpace;
   screenTexture.flipY = !videoTexture.flipY;
+  screenVideoTexture = screenTexture;
 
   if (screenMesh) {
     screenMesh.material = new THREE.MeshBasicMaterial({
@@ -90,6 +103,48 @@ export async function setupExplosion() {
   });
 
   active = true;
+}
+
+function cleanupExplosionMedia() {
+  active = false;
+
+  if (bgQuad) {
+    bgScene.remove(bgQuad);
+    bgQuad.geometry.dispose();
+    bgQuad = null;
+  }
+
+  if (bgMaterial) {
+    bgMaterial.dispose();
+    bgMaterial = null;
+  }
+
+  if (bgVideoTexture) {
+    bgVideoTexture.dispose();
+    bgVideoTexture = null;
+  }
+
+  if (screenVideoTexture) {
+    screenVideoTexture.dispose();
+    screenVideoTexture = null;
+  }
+
+  if (screenMesh) {
+    if (!blackScreenMaterial) {
+      blackScreenMaterial = new THREE.MeshBasicMaterial({
+        color: 0x000000,
+        toneMapped: false,
+      });
+    }
+    screenMesh.material = blackScreenMaterial;
+  }
+
+  if (explosionVideo) {
+    explosionVideo.pause();
+    explosionVideo.removeAttribute('src');
+    explosionVideo.load();
+    explosionVideo = null;
+  }
 }
 
 export function renderExplosion(scene, camera) {
@@ -183,6 +238,7 @@ function showIntroText() {
       delay: 0.5,
       ease: 'power2.inOut',
       onComplete: () => {
+        cleanupExplosionMedia();
         window.dispatchEvent(new Event('pullApart:show'));
       },
     });

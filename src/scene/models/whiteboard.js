@@ -27,6 +27,21 @@ const pointerNdc = new THREE.Vector2();
 const tmpWorld = new THREE.Vector3();
 const tmpLocal = new THREE.Vector3();
 
+function getClientPoint(event) {
+  if (event.touches && event.touches.length > 0) {
+    return event.touches[0];
+  }
+  if (event.changedTouches && event.changedTouches.length > 0) {
+    return event.changedTouches[0];
+  }
+  return event;
+}
+
+function isUiEvent(event) {
+  const target = event.target;
+  return target instanceof Element && !!target.closest('#draw-panel, .lil-gui');
+}
+
 function createBoardCanvas() {
   canvas = document.createElement('canvas');
   canvas.width = CANVAS_SIZE;
@@ -235,8 +250,9 @@ function movePenTipTo(worldPoint) {
 }
 
 function updatePointerNdc(event) {
-  pointerNdc.x = (event.clientX / window.innerWidth) * 2 - 1;
-  pointerNdc.y = -(event.clientY / window.innerHeight) * 2 + 1;
+  const point = getClientPoint(event);
+  pointerNdc.x = (point.clientX / window.innerWidth) * 2 - 1;
+  pointerNdc.y = -(point.clientY / window.innerHeight) * 2 + 1;
 }
 
 function getBoardUV() {
@@ -271,12 +287,13 @@ function drawTo(uv) {
 }
 
 function onPointerDown(event) {
-  if (!writingMode) return;
+  if (!writingMode || isUiEvent(event)) return;
   updatePointerNdc(event);
 
   // Start a stroke if we hit the board
   const uv = getBoardUV();
   if (uv) {
+    if (event.cancelable) event.preventDefault();
     isDrawing = true;
     lastUV = null;
     drawTo(uv);
@@ -284,7 +301,7 @@ function onPointerDown(event) {
 }
 
 function onPointerMove(event) {
-  if (!writingMode) return;
+  if (!writingMode || isUiEvent(event)) return;
   updatePointerNdc(event);
 
   // Raycast board once for both aiming + drawing
@@ -292,6 +309,7 @@ function onPointerMove(event) {
   const hits = raycaster.intersectObject(displayMesh, false);
 
   if (hits.length > 0) {
+    if (isDrawing && event.cancelable) event.preventDefault();
     // Slide the pen so its tip sits on the cursor's hit point
     movePenTipTo(hits[0].point);
 
@@ -304,6 +322,19 @@ function onPointerMove(event) {
 function onPointerUp() {
   isDrawing = false;
   lastUV = null;
+}
+
+function onTouchStart(event) {
+  onPointerDown(event);
+}
+
+function onTouchMove(event) {
+  onPointerMove(event);
+}
+
+function onTouchEnd(event) {
+  if (writingMode && isDrawing && event.cancelable && !isUiEvent(event)) event.preventDefault();
+  onPointerUp(event);
 }
 
 export function setupWhiteboard(model) {
@@ -349,4 +380,7 @@ export function setupWhiteboard(model) {
   window.addEventListener('pointerdown', onPointerDown);
   window.addEventListener('pointermove', onPointerMove);
   window.addEventListener('pointerup', onPointerUp);
+  window.addEventListener('touchstart', onTouchStart, { passive: false });
+  window.addEventListener('touchmove', onTouchMove, { passive: false });
+  window.addEventListener('touchend', onTouchEnd, { passive: false });
 }

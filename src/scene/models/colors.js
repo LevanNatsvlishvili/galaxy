@@ -2,11 +2,12 @@ import gsap from 'gsap';
 import * as THREE from 'three';
 import gui from '@/utils/gui';
 import { models } from '@/store/models';
-import { scene } from '@/utils/renderer';
+import { camera, renderer, scene } from '@/utils/renderer';
 import { setupWhiteboard, showDrawPanel, revealPen } from './whiteboard';
 
-const REVEAL_DURATION = 1.4;
+const REVEAL_DURATION = 2;
 const STAGGER = 0.1;
+const REVEAL_DELAY = 0.5;
 const HOLD_DURATION = 3;
 
 // Card-fan angle by distance from center slot (degrees).
@@ -25,9 +26,6 @@ const zStackBehind = (i, total) => -0.008 * (i + 1);
 const fanAngleRad = (slot) =>
   THREE.MathUtils.degToRad((FAN_ANGLE_BY_SLOT[Math.abs(slot)] ?? 30) * Math.sign(slot));
 const FAN_Y_DROP_PER_SLOT = 0.01;
-
-// Main model is cobalt-violet. Variants order in models.variants:
-// [pinkGold, black, silverShadow, skyBlue, white]
 
 function showHeading() {
   const heading = document.createElement('div');
@@ -111,7 +109,7 @@ function revealColors() {
       main.position.x + LAYOUT[i] * FAN_X_PER_SLOT + (LAYOUT[i] === -3 ? FURTHEST_LEFT_X_NUDGE : 0);
     const targetX = i === models.variants.length - 1 ? LAST_VARIANT_REVEAL_X : baseTargetX;
     const targetZ = main.position.z + zStackBehind(i, models.variants.length);
-    const delay = i * STAGGER;
+    const delay = REVEAL_DELAY;
     const arrival = delay + REVEAL_DURATION;
     if (arrival > lastArrivalTime) lastArrivalTime = arrival;
 
@@ -136,8 +134,12 @@ function revealColors() {
       delay,
       ease: 'power2.out',
     });
-
   });
+
+  // Pre-warm shaders/materials after variants are in scene to avoid first-time
+  // compilation hitch on this stage (seen when colors runs after prior stages).
+  scene.updateMatrixWorld(true);
+  renderer.compile(scene, camera);
 
   if (lastVariant && !lastVariant.userData.guiXZAdded) {
     lastVariant.userData.guiXZAdded = true;
